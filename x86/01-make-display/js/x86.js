@@ -1,27 +1,27 @@
 class x86 {
-    
+
     constructor() {
-        
+
         let el  = document.getElementById('terminal');
         let ctx = el.getContext('2d');
         let img = ctx.getImageData(0, 0, el.width, el.height);
-		
-		this.memory = new Uint8Array(1024*1024); // 1Mb        
+        
+        this.memory = new Uint8Array(1024*1024); // 1Mb        
         this.canvas = {
-			
+            
             el:  el,
             ctx: ctx,
             w:   el.width,
             h:   el.height,
             img: img,
-			refresh: 1,
+            refresh: 1,
             color: [
                 0x000000, 0x0000aa, 0x00aa00, 0x00aaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, // 0..7
                 0x555555, 0x5555ff, 0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff  // 8..15
             ]
-		}
-		
-		this.font = [
+        }
+        
+        this.font = [
 
                 /* $00 */ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 /* $01 */ [0, 0, 126, 129, 165, 165, 165, 129, 129, 189, 153, 129, 126, 0, 0, 0],
@@ -287,7 +287,7 @@ class x86 {
             ];
 
         this.testmon();
-		this.refresh();
+        this.refresh();
     }
     
     // Тестовые данные
@@ -308,74 +308,74 @@ class x86 {
         this.wb(addr,v); 
         this.wb(addr+1,v>>8); 
     }
-	
+    
     // Функции для дисплея
-	// ---------------------------------------------------------------------
-	
-	// Копирует пиксельные данные из массива на канву
-	flush() {       
-		this.canvas.ctx.putImageData(this.canvas.img, 0, 0);
-	}
-	
-	// Наблюдатель изменений в картинке
-	refresh() {
+    // ---------------------------------------------------------------------
+    
+    // Копирует пиксельные данные из массива на канву
+    flush() {       
+        this.canvas.ctx.putImageData(this.canvas.img, 0, 0);
+    }
+    
+    // Наблюдатель изменений в картинке
+    refresh() {
 
-		if (this.canvas.refresh) 
-			this.flush();
+        if (this.canvas.refresh) 
+            this.flush();
 
-		this.canvas.refresh = 0;
-		setTimeout(function() { this.refresh(); }.bind(this), 25);
-	}
+        this.canvas.refresh = 0;
+        setTimeout(function() { this.refresh(); }.bind(this), 25);
+    }
 
-	// Вывод точки в буфер
-	pset(x, y, c) {
+    // Вывод точки в буфер
+    pset(x, y, c) {
 
         this.canvas.refresh = 1;
-		for (let i = 2*y; i <= 2*y + 1; i++)
-		for (let j = 2*x; j <= 2*x + 1; j++) {
+        for (let i = 2*y; i <= 2*y + 1; i++)
+        for (let j = 2*x; j <= 2*x + 1; j++) {
 
-			if (j >= 0 && i >= 0 && j < this.canvas.w && i < this.canvas.h) {
+            if (j >= 0 && i >= 0 && j < this.canvas.w && i < this.canvas.h) {
 
-				let p = 4*(j + i * this.canvas.w);
-				this.canvas.img.data[p    ] =  (c >> 16) & 0xff;
-				this.canvas.img.data[p + 1] =  (c >>  8) & 0xff;
-				this.canvas.img.data[p + 2] =  (c      ) & 0xff;
-				this.canvas.img.data[p + 3] = ((c >> 24) & 0xff) ^ 0xff;
-			}
-		}
-	};
+                let p = 4*(j + i * this.canvas.w);
+                this.canvas.img.data[p    ] =  (c >> 16) & 0xff;
+                this.canvas.img.data[p + 1] =  (c >>  8) & 0xff;
+                this.canvas.img.data[p + 2] =  (c      ) & 0xff;
+                this.canvas.img.data[p + 3] = ((c >> 24) & 0xff) ^ 0xff;
+            }
+        }
+    };
 
-	// Печать одного символа
-	update_text_byte(addr) {
-		
-		if (addr >= 0xb8000 && addr < 0xb8000 + 4000) {
-			
-            let old = addr & 0xFFFFE;
-			addr -= 0xb8000;
-			addr >>= 1;
-			
-			let x = addr % 80, 
-				y = Math.floor(addr / 80);
-			
-			x *= 8;
-			y *= 16;
-			
-			let sym  = this.memory[old + 0];
-			let attr = this.memory[old + 1];
-
-			let fore = attr & 15;
-			let back = attr >> 4;
+    // Печать одного символа
+    update_text_byte(addr) {
+        
+        if (addr >= 0xb8000 && addr < 0xb8000 + 4000) {
             
-			for (let i = 0; i < 16; i++) {
+            let old = addr & 0xFFFFE;
+            addr -= 0xb8000;
+            addr >>= 1;
+            
+            let x = addr % 80, 
+                y = Math.floor(addr / 80);
+            
+            x *= 8;
+            y *= 16;
+            
+            let sym  = this.memory[old + 0];
+            let attr = this.memory[old + 1];
 
-				let mask = this.font[sym][i];
-				for (let j = 0; j < 8; j++) {
+            let fore = attr & 15;
+            let back = attr >> 4;
+            
+            for (let i = 0; i < 16; i++) {
 
-					let cl = mask & (1 << (7-j)) ? fore : back;
-					this.pset(x + j, y + i, this.canvas.color[ cl&15 ]);
-				}
-			}
-			
-		}
-	}
+                let mask = this.font[sym][i];
+                for (let j = 0; j < 8; j++) {
+
+                    let cl = mask & (1 << (7-j)) ? fore : back;
+                    this.pset(x + j, y + i, this.canvas.color[ cl&15 ]);
+                }
+            }
+            
+        }
+    }
 }
