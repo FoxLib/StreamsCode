@@ -19,7 +19,7 @@ class x86 {
                 0x000000, 0x0000aa, 0x00aa00, 0x00aaaa, 0xaa0000, 0xaa00aa, 0xaa5500, 0xaaaaaa, // 0..7
                 0x555555, 0x5555ff, 0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff  // 8..15
             ]
-        }
+        };
         
         this.font = [
 
@@ -374,8 +374,7 @@ class x86 {
                     let cl = mask & (1 << (7-j)) ? fore : back;
                     this.pset(x + j, y + i, this.canvas.color[ cl&15 ]);
                 }
-            }
-            
+            }            
         }
     }
 }
