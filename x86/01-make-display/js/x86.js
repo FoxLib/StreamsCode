@@ -5,10 +5,10 @@ class x86 {
         let el  = document.getElementById('terminal');
         let ctx = el.getContext('2d');
         let img = ctx.getImageData(0, 0, el.width, el.height);
-        
-        this.memory = new Uint8Array(1024*1024); // 1Mb        
+
+        this.memory = new Uint8Array(1024*1024); // 1Mb
         this.canvas = {
-            
+
             el:  el,
             ctx: ctx,
             w:   el.width,
@@ -20,7 +20,7 @@ class x86 {
                 0x555555, 0x5555ff, 0x55ff55, 0x55ffff, 0xff5555, 0xff55ff, 0xffff55, 0xffffff  // 8..15
             ]
         };
-        
+
         this.font = [
 
                 /* $00 */ [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -289,38 +289,38 @@ class x86 {
         this.testmon();
         this.refresh();
     }
-    
+
     // Тестовые данные
     testmon() {
 
         for (let i = 0; i < 4000; i += 2)
             this.ww(0xb8000 + i, 0x1721 + i);
     }
-        
+
     // Чтение и запись
-    wb(addr, v) { 
-        this.memory[addr & 0xFFFFF] = v & 255; 
-        this.update_text_byte(addr); 
+    wb(addr, v) {
+        this.memory[addr & 0xFFFFF] = v & 255;
+        this.update_text_byte(addr);
     }
     rb(addr) { return this.memory[addr & 0xFFFFF]; }
     rw(addr) { return this.rb(addr) + 256*this.rb(addr+1); }
-    ww(addr, v) { 
-        this.wb(addr,v); 
-        this.wb(addr+1,v>>8); 
+    ww(addr, v) {
+        this.wb(addr,v);
+        this.wb(addr+1,v>>8);
     }
-    
+
     // Функции для дисплея
     // ---------------------------------------------------------------------
-    
+
     // Копирует пиксельные данные из массива на канву
-    flush() {       
+    flush() {
         this.canvas.ctx.putImageData(this.canvas.img, 0, 0);
     }
-    
+
     // Наблюдатель изменений в картинке
     refresh() {
 
-        if (this.canvas.refresh) 
+        if (this.canvas.refresh)
             this.flush();
 
         this.canvas.refresh = 0;
@@ -347,25 +347,25 @@ class x86 {
 
     // Печать одного символа
     update_text_byte(addr) {
-        
+
         if (addr >= 0xb8000 && addr < 0xb8000 + 4000) {
-            
+
             let old = addr & 0xFFFFE;
             addr -= 0xb8000;
             addr >>= 1;
-            
-            let x = addr % 80, 
+
+            let x = addr % 80,
                 y = Math.floor(addr / 80);
-            
+
             x *= 8;
             y *= 16;
-            
+
             let sym  = this.memory[old + 0];
             let attr = this.memory[old + 1];
 
             let fore = attr & 15;
             let back = attr >> 4;
-            
+
             for (let i = 0; i < 16; i++) {
 
                 let mask = this.font[sym][i];
@@ -374,7 +374,7 @@ class x86 {
                     let cl = mask & (1 << (7-j)) ? fore : back;
                     this.pset(x + j, y + i, this.canvas.color[ cl&15 ]);
                 }
-            }            
+            }
         }
     }
 }
